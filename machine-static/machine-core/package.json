@@ -2,7 +2,10 @@
   "name": "machine-core",
   "version": "0.1.0",
   "description": "Types and utitilities for behavioural typechecking for @actyx/machine-runner machines",
-  "repository": "https://github.com/lucas874/machines",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/lucas874/machines.git"
+  },
   "author": "",
   "keywords": [
     "local-first"
@@ -28,7 +31,7 @@
     "build:ts:esm": "tsc --build tsconfig.esm.json && cpy package.esm.json lib/esm --rename package.json",
     "build:ts:cjs": "tsc --build tsconfig.cjs.json && cpy package.cjs.json lib/cjs --rename package.json",
     "build": "npm run build:rs && npm run build:ts",
-    "prepack:rmfiles": "rimraf lib/pkg/.gitignore && rimraf lib/esm/tsconfig.esm.tsbuildinfo && rimraf lib/cjs/tsconfig.cjs.tsbuildinfo", 
+    "prepack:rmfiles": "rimraf lib/pkg/.gitignore && rimraf lib/esm/tsconfig.esm.tsbuildinfo && rimraf lib/cjs/tsconfig.cjs.tsbuildinfo",
     "prepack": "npm run clean && npm run build && npm run prepack:rmfiles",
     "test": "npm run test:esm && npm run test:cjs",
     "test:esm": "cross-env NODE_OPTIONS=--experimental-vm-modules cross-env jest --config examples/esm/jest.config.ts",
@@ -54,5 +57,12 @@
     "tsx": "^4.21.0",
     "typedoc": "^0.28.15",
     "typescript": "^5.9.3"
+  },
+  "bugs": {
+    "url": "https://github.com/lucas874/machines/issues"
+  },
+  "homepage": "https://github.com/lucas874/machines#readme",
+  "dependencies": {
+    "@actyx/machine-check": "^0.3.1"
   }
 }
