@@ -10,6 +10,8 @@ Alternatively, the example can be installed and executed natively by following t
 
 ## Running the example natively
 
+**Note:** These instructions assume that [rustup](https://rustup.rs/) and [Node.js®](https://nodejs.org/en/download) (version >= 20 and with support for [TypeScript](https://www.typescriptlang.org/download/)) is installed on your system.
+
 To begin, if you have not already done so, please clone this repository, `cd` to it and build the libraries [`machine-runner`](../../machine-runner), [`machine-core`](../../machine-static/machine-core), and [`machine-check`](../../machine-static/machine-check):
 ```
 git clone https://github.com/DTU-SSE/machines.git && cd machines && npm run clean-build-machines
