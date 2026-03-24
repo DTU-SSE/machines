@@ -520,9 +520,7 @@ export namespace RunnerInternalsBT {
     const mechanism = internals.current.factory.mechanism
     const protocol = mechanism.protocol
     const reactions = protocol.reactionMap.get(mechanism)
-    if (internals.logger) {
-      internals.logger.logEvent(event.payload, "Received")
-    }
+
     const queueDeterminationResult =
       shouldEventBeEnqueued<StatePayload>(
         reactions,

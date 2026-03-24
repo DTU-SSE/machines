@@ -848,6 +848,10 @@ export const createMachineRunnerInternalBT = <
               bootTimeLogger.incrementEventCount()
               emitter.emit('debug.eventHandlingPrevState', internals.current.data)
 
+              if (internals.logger) {
+                internals.logger.logEvent(event.payload, "Received")
+              }
+
               const pushEventResult = RunnerInternalsBT.pushEvent(internals, event)
 
               emitter.emit('debug.eventHandling', {
