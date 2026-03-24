@@ -3,6 +3,7 @@ import { ActyxEvent } from '@actyx/sdk'
 import * as utils from '../utils/type-utils.js'
 import { CommandDefiner, CommandDefinerMap } from './command.js'
 import { Contained, MachineEvent } from './event.js'
+import { Logger } from '../utils/logger.js'
 
 export * from './command.js'
 export * from './event.js'
@@ -37,6 +38,7 @@ export namespace StateRaw {
 export type CommandContextBT<Self, EmittedEventFactories extends MachineEvent.Factory.Any> = {
   self: Self
   jbLast: Map<string, string>,
+  logger?: Logger, // Ugly hack to perform latency experiment.
   /**
    * Attach tags to MachineEvents associated to this command
    * @param tags the tags that will be attached to the MachineEvents
@@ -54,6 +56,7 @@ export type StateRawBT<Name extends string, Payload> = {
   type: Name
   payload: Payload
   jbLast: Map<string, string>
+  logger?: Logger // Ugly hack to perform latency experiment.
 }
 
 /**
@@ -219,11 +222,11 @@ export type StateMechanism<
     CommandArgs extends unknown[],
   >(
     cmds: [(CommandName extends `_${string}` ? never : CommandName),
-            (EmittedEventFactories),
-            (CommandDefiner<
-              CommandContext<StatePayload, MachineEvent.Factory.Reduce<EmittedEventFactories>> | CommandContextBT<StatePayload, MachineEvent.Factory.Reduce<EmittedEventFactories>>,
-              CommandArgs,
-              MachineEvent.Factory.MapToPayloadOrContainedPayload<EmittedEventFactories>>)][]
+      (EmittedEventFactories),
+      (CommandDefiner<
+        CommandContext<StatePayload, MachineEvent.Factory.Reduce<EmittedEventFactories>> | CommandContextBT<StatePayload, MachineEvent.Factory.Reduce<EmittedEventFactories>>,
+        CommandArgs,
+        MachineEvent.Factory.MapToPayloadOrContainedPayload<EmittedEventFactories>>)][]
   ) => StateMechanism<
     SwarmProtocolName,
     MachineName,
@@ -239,7 +242,7 @@ export type StateMechanism<
     }
   >
   // come back to this remove any! come back to all uses of any regarding commandDefinitions
-  readonly commandDefinitions:  Map<string, CommandDefiner<
+  readonly commandDefinitions: Map<string, CommandDefiner<
     CommandContext<StatePayload, MachineEvent.Factory.Reduce<any>> | CommandContextBT<StatePayload, MachineEvent.Factory.Reduce<any>>,
     unknown[],
     MachineEvent.Factory.MapToPayloadOrContainedPayload<any>>>
@@ -323,7 +326,11 @@ export namespace StateMechanism {
             return "jbLast" in params[0] ? [factory.makeBT(payload, params[0].jbLast.get(factory.type)!), extraData] : [factory.make(payload), extraData]
           },
         )
-
+        if ("logger" in params[0] && params[0].logger) {
+          for (const e of events) {
+            params[0].logger.logEvent(e[0], "Emitted")
+          }
+        }
         return events
       }
 
@@ -351,7 +358,7 @@ export namespace StateMechanism {
             commandName: name,
           },
         ],
-        commandDefinitions: {... commandDefinitions, [name]: commandDefinition }
+        commandDefinitions: { ...commandDefinitions, [name]: commandDefinition }
       })
     }
 

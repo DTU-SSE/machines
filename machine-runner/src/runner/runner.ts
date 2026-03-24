@@ -44,6 +44,7 @@ import { deepEqual } from 'fast-equals'
 import { deepCopy } from '../utils/object-utils.js'
 import * as globals from '../globals.js'
 import { MachineRunnerFailure } from '../errors.js'
+import { Logger } from '../utils/logger.js'
 
 /**
  * Contains and manages the state of a machine by subscribing and publishing
@@ -306,7 +307,8 @@ export const createMachineRunnerBT = <
     any
   >,
   initialPayload: any,
-  adaptedMachine: AdaptedMachine<SwarmProtocolName, MachineName, MachineEventFactories>
+  adaptedMachine: AdaptedMachine<SwarmProtocolName, MachineName, MachineEventFactories>,
+  logger?: Logger,
 ): MachineRunner<SwarmProtocolName, MachineName, StateUnion> => {
   const subscribeMonotonicQuery = {
     query: tags,
@@ -319,7 +321,7 @@ export const createMachineRunnerBT = <
   const subscribe: SubscribeFn<MachineEvents> = (callback, onCompleteOrErr) =>
     sdk.subscribeMonotonic<MachineEvents>(subscribeMonotonicQuery, callback, onCompleteOrErr)
 
-  return createMachineRunnerInternalBT(subscribe, persist, tags, initialFactory, initialPayload, adaptedMachine.projectionInfo.branches, new Set(adaptedMachine.projectionInfo.specialEventTypes))
+  return createMachineRunnerInternalBT(subscribe, persist, tags, initialFactory, initialPayload, adaptedMachine.projectionInfo.branches, new Set(adaptedMachine.projectionInfo.specialEventTypes), logger)
 }
 export const createMachineRunnerInternal = <
   SwarmProtocolName extends string,
@@ -703,6 +705,7 @@ export const createMachineRunnerInternalBT = <
   initialPayload: Payload,
   succeedingNonBranchingJoining: Record<string, string[]>,
   specialEvents: Set<string>,
+  logger?: Logger
 ): MachineRunner<SwarmProtocolName, MachineName, StateUnion> => {
   type ThisStateOpaque = StateOpaque<SwarmProtocolName, MachineName, string, StateUnion>
   type ThisMachineRunner = MachineRunner<SwarmProtocolName, MachineName, StateUnion>
@@ -788,7 +791,9 @@ export const createMachineRunnerInternalBT = <
     // Change is triggered because commandLock status changed
     emitter.emit('change', ImplStateOpaque.make(internals, internals.current))
     return persistResult
-  })
+  },
+  logger
+)
 
   // Actyx Subscription management
   internals.destruction.addDestroyHook(() => emitter.emit('destroyed', undefined))
@@ -1788,6 +1793,7 @@ namespace ImplState {
         type: stateAtSnapshot.type,
         payload: stateAtSnapshot.payload,
         jbLast: stateAtSnapshot.jbLast,
+        logger: stateAtSnapshot.logger ?? undefined,
         commands,
       } : {
         type: stateAtSnapshot.type,
@@ -1848,7 +1854,8 @@ namespace ImplState {
       Contained.ContainedPayload.wrap(payload, {
         additionalTags,
       }),
-    jbLast: stateAtSnapshot.jbLast
+    jbLast: stateAtSnapshot.jbLast,
+    logger: stateAtSnapshot.logger
   } : {
     self: stateAtSnapshot.payload,
     withTags: (additionalTags, payload) =>

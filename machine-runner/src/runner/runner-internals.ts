@@ -13,6 +13,7 @@ import {
 } from '../design/state.js'
 import { Destruction } from '../utils/destruction.js'
 import { MachineRunnerFailure } from '../errors.js'
+import { Logger } from '../utils/logger.js'
 
 export type CommandCallback<MachineEventFactories extends MachineEvent.Factory.Any> = (_: {
   commandKey: string
@@ -359,6 +360,7 @@ export type RunnerInternalsBT<
   failure: null | MachineRunnerFailure
 
   branchTracker: RunnerInternalsBT.BranchTracker
+  logger?: Logger
 }
 export namespace RunnerInternalsBT {
   export type Any = RunnerInternalsBT<any, any, any, any, any, any>
@@ -406,6 +408,7 @@ export namespace RunnerInternalsBT {
     specialEventTypes: Set<string>,
     branches: Record<string, string[]>,
     commandCallback: CommandCallback<MachineEventFactories>,
+    logger?: Logger
   ) => {
     const initial: StateAndFactory<
       SwarmProtocolName,
@@ -419,7 +422,8 @@ export namespace RunnerInternalsBT {
       data: {
         payload,
         type: factory.mechanism.name,
-        jbLast: new Map<string, string>(factory.mechanism.protocol.registeredEvents.map(e => [e.type, 'null']))
+        jbLast: new Map<string, string>(factory.mechanism.protocol.registeredEvents.map(e => [e.type, 'null'])),
+        logger
       },
     }
 
@@ -444,7 +448,8 @@ export namespace RunnerInternalsBT {
       commandLock: null,
       previouslyEmittedToNext: null,
       failure: null,
-      branchTracker: initBranchTracker(factory.mechanism.protocol.registeredEvents.map(e => e.type), specialEventTypes, branches)
+      branchTracker: initBranchTracker(factory.mechanism.protocol.registeredEvents.map(e => e.type), specialEventTypes, branches),
+      logger
     }
 
     return internals
@@ -515,7 +520,9 @@ export namespace RunnerInternalsBT {
     const mechanism = internals.current.factory.mechanism
     const protocol = mechanism.protocol
     const reactions = protocol.reactionMap.get(mechanism)
-
+    if (internals.logger) {
+      internals.logger.logEvent(event.payload, "Received")
+    }
     const queueDeterminationResult =
       shouldEventBeEnqueued<StatePayload>(
         reactions,
@@ -556,7 +563,8 @@ export namespace RunnerInternalsBT {
             data: {
               type: nextFactory.mechanism.name,
               payload: nextPayload,
-              jbLast: internals.branchTracker.jbLast
+              jbLast: internals.branchTracker.jbLast,
+              logger: internals.logger
             },
             factory: nextFactory,
           }
