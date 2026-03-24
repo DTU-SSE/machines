@@ -1,8 +1,9 @@
 import { Actyx, Tags } from '@actyx/sdk'
-import { createMachineRunnerBT, MachineRunner } from '@actyx/machine-runner'
+import { createMachineRunnerBT, MachineRunner, utils } from '@actyx/machine-runner'
 import { manifest, Protocol, printState, machineRunnerProtoName, logToFile } from '../protocol'
 import { isValidVersion, VersionSelector } from '../version_selector'
 import { forkliftWarehouseFactory, initialStateWarehouseFactory, deliverState, forkliftBT, initialStateBT, initialStateWarehouseFactoryQuality, forkliftWarehouseFactoryQuality } from '../machines/forklift_machine'
+import { randomUUID } from 'crypto';
 
 // Run a forklift machine
 async function main() {
@@ -55,6 +56,10 @@ const selectMachine = <
     case VersionSelector.WarehouseFactoryQuality:
         printState(forkliftWarehouseFactoryQuality.machineName, initialStateWarehouseFactoryQuality.mechanism.name, undefined)
       return createMachineRunnerBT(app, tags, initialStateWarehouseFactoryQuality, undefined, forkliftWarehouseFactoryQuality)
+    case VersionSelector.Logging:
+      printState(forkliftWarehouseFactory.machineName, initialStateWarehouseFactory.mechanism.name, undefined)
+      const logger = utils.logger.Logger.make(`${forkliftWarehouseFactory.machineName}-${randomUUID()}.log`)
+      return createMachineRunnerBT(app, tags, initialStateWarehouseFactory, undefined, forkliftWarehouseFactory, logger)
     default:
       throw Error(`Invalid version: ${version}`)
   }

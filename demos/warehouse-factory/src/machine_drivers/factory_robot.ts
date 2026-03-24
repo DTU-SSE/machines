@@ -1,8 +1,9 @@
 import { Actyx, Tags } from '@actyx/sdk'
-import { createMachineRunnerBT, MachineRunner } from '@actyx/machine-runner'
+import { createMachineRunnerBT, MachineRunner, utils } from '@actyx/machine-runner'
 import { manifest, Protocol, printState, getRandomInt, machineRunnerProtoName, logToFile } from '../protocol'
 import { initialStateWarehouseFactory, robotWarehouseFactory, buildState, initialStateWarehouseFactoryQuality, robotWarehouseFactoryQuality } from '../machines/robot_machine';
 import { isValidVersion, VersionSelector } from '../version_selector';
+import { randomUUID } from 'crypto';
 
 // Run the adapted machine
 async function main() {
@@ -51,6 +52,10 @@ const selectMachine = <
     case VersionSelector.WarehouseFactoryQuality:
       printState(robotWarehouseFactoryQuality.machineName, initialStateWarehouseFactoryQuality.mechanism.name, undefined)
       return createMachineRunnerBT(app, tags, initialStateWarehouseFactoryQuality, undefined, robotWarehouseFactoryQuality)
+    case VersionSelector.Logging:
+      printState(robotWarehouseFactory.machineName, initialStateWarehouseFactory.mechanism.name, undefined)
+      const logger = utils.logger.Logger.make(`${robotWarehouseFactory.machineName}-${randomUUID()}.log`)
+      return createMachineRunnerBT(app, tags, initialStateWarehouseFactory, undefined, robotWarehouseFactory, logger)
     default:
       throw Error(`Invalid version: ${version}`)
   }

@@ -1,8 +1,9 @@
 import { Actyx, Tags } from '@actyx/sdk'
-import { createMachineRunnerBT, MachineRunner} from '@actyx/machine-runner'
+import { createMachineRunnerBT, MachineRunner, utils} from '@actyx/machine-runner'
 import { Events, manifest, Protocol, printState, getRandomInt, machineRunnerProtoName, logToFile } from '../protocol'
 import { initialStateBT, doorBT, initialState, initialStateWarehouseFactory, doorWarehouseFactory, initialStateWarehouseFactoryQuality, doorWarehouseFactoryQuality } from '../machines/door_machine';
 import { isValidVersion, VersionSelector } from '../version_selector';
+import { randomUUID } from 'crypto';
 
 // Run the adapted machine
 async function main() {
@@ -53,6 +54,10 @@ const selectMachine = <
     case VersionSelector.WarehouseFactoryQuality:
       printState(doorWarehouseFactoryQuality.machineName, initialStateWarehouseFactoryQuality.mechanism.name, undefined, [Events.closingTimeEvent.type])
       return createMachineRunnerBT(app, tags, initialStateWarehouseFactoryQuality, undefined, doorWarehouseFactoryQuality)
+    case VersionSelector.Logging:
+      printState(doorWarehouseFactory.machineName, initialStateWarehouseFactory.mechanism.name, undefined, [Events.closingTimeEvent.type])
+      const logger = utils.logger.Logger.make(`${doorWarehouseFactory.machineName}-${randomUUID()}.log`)
+      return createMachineRunnerBT(app, tags, initialStateWarehouseFactory, undefined, doorWarehouseFactory, logger)
     default:
       throw Error(`Invalid version: ${version}`)
   }

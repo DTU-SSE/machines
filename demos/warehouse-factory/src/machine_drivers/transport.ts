@@ -1,8 +1,9 @@
 import { Actyx, Tags } from '@actyx/sdk'
-import { createMachineRunnerBT, MachineRunner } from '@actyx/machine-runner'
+import { createMachineRunnerBT, MachineRunner, utils } from '@actyx/machine-runner'
 import { manifest, Protocol, printState, Events, machineRunnerProtoName, logToFile } from '../protocol'
 import { initialStateBT, transportBT, initialState, initialStateWarehouseFactory, deliverState, transportWarehouseFactory, initialStateWarehouseFactoryQuality, transportWarehouseFactoryQuality } from '../machines/transport_machine';
 import { isValidVersion, VersionSelector } from '../version_selector';
+import { randomUUID } from 'crypto';
 
 // Run a transport machine
 async function main() {
@@ -64,6 +65,10 @@ const selectMachine = <
     case VersionSelector.WarehouseFactoryQuality:
       printState(transportWarehouseFactoryQuality.machineName, initialStateWarehouseFactoryQuality.mechanism.name, undefined, [Events.partReqEvent.type])
       return createMachineRunnerBT(app, tags, initialStateWarehouseFactoryQuality, undefined, transportWarehouseFactoryQuality)
+    case VersionSelector.Logging:
+      printState(transportWarehouseFactory.machineName, initialStateWarehouseFactory.mechanism.name, undefined, [Events.partReqEvent.type])
+      const logger = utils.logger.Logger.make(`${transportWarehouseFactory.machineName}-${randomUUID()}.log`)
+      return createMachineRunnerBT(app, tags, initialStateWarehouseFactory, undefined, transportWarehouseFactory, logger)
     default:
       throw Error(`Invalid version: ${version}`)
   }

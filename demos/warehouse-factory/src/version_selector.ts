@@ -3,7 +3,8 @@ export enum VersionSelector {
   WarehouseFactory = "WarehouseFactory",
   WarehouseFactoryQuality = "WarehouseFactoryQuality",
   KickTheTires = "KickTheTires",
-  NoBranchTracking = "NoBranchTracking"
+  NoBranchTracking = "NoBranchTracking",
+  Logging = "Logging"
 }
 
 export const isValidVersion = (value: unknown): value is VersionSelector => {
