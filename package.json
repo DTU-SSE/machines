@@ -29,8 +29,5 @@
     "machine-static/machine-core",
     "machine-static/machine-check",
     "machine-runner"
-  ],
-  "dependencies": {
-    "pino": "^10.3.1"
-  }
+  ]
 }
